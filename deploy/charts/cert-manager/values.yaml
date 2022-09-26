@@ -33,7 +33,7 @@ global:
 
   leaderElection:
     # Override the namespace used for the leader election lease
-    namespace: "kube-system"
+    namespace: "cert-manager"
 
     # The duration that non-leader candidates will wait after observing a
     # leadership renewal until attempting to acquire leadership of a led but
@@ -65,7 +65,7 @@ strategy: {}
 featureGates: ""
 
 image:
-  repository: quay.io/jetstack/cert-manager-controller
+  repository: docker.io/romantomjak/cert-manager-controller
   # You can manage a registry with
   # registry: quay.io
   # repository: jetstack/cert-manager-controller
@@ -330,7 +330,7 @@ webhook:
   serviceLabels: {}
 
   image:
-    repository: quay.io/jetstack/cert-manager-webhook
+    repository: docker.io/romantomjak/cert-manager-webhook
     # You can manage a registry with
     # registry: quay.io
     # repository: jetstack/cert-manager-webhook
@@ -468,7 +468,7 @@ cainjector:
   podLabels: {}
 
   image:
-    repository: quay.io/jetstack/cert-manager-cainjector
+    repository: docker.io/romantomjak/cert-manager-cainjector
     # You can manage a registry with
     # registry: quay.io
     # repository: jetstack/cert-manager-cainjector
@@ -560,7 +560,7 @@ startupapicheck:
   podLabels: {}
 
   image:
-    repository: quay.io/jetstack/cert-manager-ctl
+    repository: docker.io/romantomjak/cert-manager-ctl
     # You can manage a registry with
     # registry: quay.io
     # repository: jetstack/cert-manager-ctl

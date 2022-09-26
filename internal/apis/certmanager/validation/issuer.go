@@ -423,13 +423,25 @@ func ValidateACMEChallengeSolverDNS01(p *cmacme.ACMEChallengeSolverDNS01, fldPat
 			el = append(el, field.Required(fldPath.Child("acmeDNS", "host"), ""))
 		}
 	}
-
 	if p.DigitalOcean != nil {
 		if numProviders > 0 {
 			el = append(el, field.Forbidden(fldPath.Child("digitalocean"), "may not specify more than one provider type"))
 		} else {
 			numProviders++
 			el = append(el, ValidateSecretKeySelector(&p.DigitalOcean.Token, fldPath.Child("digitalocean", "tokenSecretRef"))...)
+		}
+	}
+	if p.GoDaddy != nil {
+		if numProviders > 0 {
+			el = append(el, field.Forbidden(fldPath.Child("godaddy"), "may not specify more than one provider type"))
+		} else {
+			numProviders++
+			if p.GoDaddy.APIKey != nil {
+				el = append(el, ValidateSecretKeySelector(p.GoDaddy.APIKey, fldPath.Child("godaddy", "apiKeySecretRef"))...)
+			}
+			if p.GoDaddy.APISecret != nil {
+				el = append(el, ValidateSecretKeySelector(p.GoDaddy.APISecret, fldPath.Child("godaddy", "apiSecretSecretRef"))...)
+			}
 		}
 	}
 	if p.RFC2136 != nil {

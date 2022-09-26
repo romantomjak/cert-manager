@@ -39,6 +39,7 @@ import (
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/clouddns"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/cloudflare"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/digitalocean"
+	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/godaddy"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/rfc2136"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/route53"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns/util"
@@ -63,6 +64,7 @@ type dnsProviderConstructors struct {
 	azureDNS     func(environment, clientID, clientSecret, subscriptionID, tenantID, resourceGroupName, hostedZoneName string, dns01Nameservers []string, ambient bool, managedIdentity *cmacme.AzureManagedIdentity) (*azuredns.DNSProvider, error)
 	acmeDNS      func(host string, accountJson []byte, dns01Nameservers []string) (*acmedns.DNSProvider, error)
 	digitalOcean func(token string, dns01Nameservers []string) (*digitalocean.DNSProvider, error)
+	goDaddy      func(apikey, apiSecret string, dns01Nameservers []string) (*godaddy.DNSProvider, error)
 }
 
 // Solver is a solver for the acme dns01 challenge.
@@ -409,6 +411,27 @@ func (s *Solver) solverForChallenge(ctx context.Context, issuer v1.GenericIssuer
 		if err != nil {
 			return nil, providerConfig, fmt.Errorf("error instantiating acmedns challenge solver: %s", err)
 		}
+	case providerConfig.GoDaddy != nil:
+		dbg.Info("preparing to create GoDaddy provider")
+
+		// Obtain API Key.
+		apiKeySecret, err := s.secretLister.Secrets(resourceNamespace).Get(providerConfig.GoDaddy.APIKey.Name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error getting godaddy API key: %s", err)
+		}
+		apiKey := string(apiKeySecret.Data[providerConfig.GoDaddy.APIKey.Key])
+
+		// Obtain API Secret.
+		apiSecretSecret, err := s.secretLister.Secrets(resourceNamespace).Get(providerConfig.GoDaddy.APISecret.Name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error getting godaddy API secret: %s", err)
+		}
+		apiSecret := string(apiSecretSecret.Data[providerConfig.GoDaddy.APISecret.Key])
+
+		impl, err = s.dnsProviderConstructors.goDaddy(strings.TrimSpace(apiKey), strings.TrimSpace(apiSecret), s.DNS01Nameservers)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error instantiating godaddy challenge solver: %s", err.Error())
+		}
 	default:
 		return nil, providerConfig, fmt.Errorf("no dns provider config specified for challenge")
 	}
@@ -518,6 +541,7 @@ func NewSolver(ctx *controller.Context) (*Solver, error) {
 			azuredns.NewDNSProviderCredentials,
 			acmedns.NewDNSProviderHostBytes,
 			digitalocean.NewDNSProviderCredentials,
+			godaddy.NewDNSProviderCredentials,
 		},
 		webhookSolvers: initialized,
 	}, nil

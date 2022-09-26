@@ -326,6 +326,9 @@ type ACMEChallengeSolverDNS01 struct {
 	// Use the DigitalOcean DNS API to manage DNS01 challenge records.
 	DigitalOcean *ACMEIssuerDNS01ProviderDigitalOcean
 
+	// Use the GoDaddy DNS API to manage DNS01 challenge records.
+	GoDaddy *ACMEIssuerDNS01ProviderGoDaddy
+
 	// Use the 'ACME DNS' (https://github.com/joohoi/acme-dns) API to manage
 	// DNS01 challenge records.
 	AcmeDNS *ACMEIssuerDNS01ProviderAcmeDNS
@@ -394,6 +397,16 @@ type ACMEIssuerDNS01ProviderCloudflare struct {
 // configuration for DigitalOcean Domains
 type ACMEIssuerDNS01ProviderDigitalOcean struct {
 	Token cmmeta.SecretKeySelector
+}
+
+// ACMEIssuerDNS01ProviderGoDaddy is a structure containing the DNS
+// configuration for GoDaddy.
+type ACMEIssuerDNS01ProviderGoDaddy struct {
+	// API key to use to authenticate with GoDaddy.
+	APIKey *cmmeta.SecretKeySelector
+
+	// API secret used to authenticate with GoDaddy.
+	APISecret *cmmeta.SecretKeySelector
 }
 
 // ACMEIssuerDNS01ProviderRoute53 is a structure containing the Route 53
